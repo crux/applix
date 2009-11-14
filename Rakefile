@@ -5,8 +5,31 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
     gem.name = "applix"
-    gem.summary = %Q{TODO: one-line summary of your gem}
-    gem.description = %Q{TODO: longer description of your gem}
+    gem.summary = %Q{build typed option hashed from command line arguments}
+    gem.description = <<-TXT.gsub /\n\n/, ''
+      ApplixHash#from_argv builds hashes from ARGV like argument vectors
+      according to following examples: 
+      
+         '-f'                  --> { :f      => true }
+         '--flag'              --> { :flag   => true }
+         '--flag:false'        --> { :flag   => false }
+         '--flag=false'        --> { :flag   => 'false' }
+         '--option=value'      --> { :option => "value" }
+         '--int=1'             --> { :int    => "1" }
+         '--float=2.3'         --> { :float  => "2.3" }
+         '--float:2.3'         --> { :float  => 2.3 }
+         '--txt="foo bar"'     --> { :txt    => "foo bar" }
+         '--txt:\'"foo bar"\'' --> { :txt    => "foo bar" }
+         '--txt:%w{foo bar}'   --> { :txt    => ["foo", "bar"] }
+         '--now:Time.now'      --> { :now    => #<Date: 3588595/2,0,2299161> }
+      
+       remaining arguments(non flag/options) are inserted as [:arguments,
+       args], eg:
+           Hash.from_argv %w(--foo --bar=loo 123 now)
+       becomes  
+           { :foo => true, :bar => 'loo', :arguments => ["123", "now"] }
+      
+    TXT
     gem.email = "dirk@sebrink.de"
     gem.homepage = "http://github.com/crux/applix"
     gem.authors = ["dirk luesebrink"]
