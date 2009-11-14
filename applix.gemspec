@@ -36,15 +36,16 @@ Gem::Specification.new do |s|
   s.email = %q{dirk@sebrink.de}
   s.extra_rdoc_files = [
     "LICENSE",
-     "README.rdoc"
+     "README.markdown"
   ]
   s.files = [
     ".document",
      ".gitignore",
      "LICENSE",
-     "README.rdoc",
+     "README.markdown",
      "Rakefile",
      "VERSION",
+     "applix.gemspec",
      "lib/applix.rb",
      "spec/applix_spec.rb",
      "spec/spec_helper.rb"

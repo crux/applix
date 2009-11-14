@@ -16,13 +16,13 @@ following examples:
     '--txt:%w{foo bar}'   --> { :txt    => ["foo", "bar"] }
     '--now:Time.now'      --> { :now    => #<Date: 3588595/2,0,2299161> }
 
-Remaining arguments(non flag/options) are inserted as [:arguments, args], eg:
+Remaining arguments(non flag/options) are inserted as [:args], eg:
 
     Hash.from_argv %w(--foo --bar=loo 123 now)
 
 becomes:
 
-    { :foo => true, :bar => 'loo', :arguments => ["123", "now"] }
+    { :foo => true, :bar => 'loo', :args => ["123", "now"] }
 
 ## Note on Patches/Pull Requests
  

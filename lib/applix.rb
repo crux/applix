@@ -17,11 +17,10 @@ module ApplixHash
     #   '--txt:%w{foo bar}'   --> { :txt    => ["foo", "bar"] }
     #   '--now:Time.now'      --> { :now    => #<Date: 3588595/2,0,2299161> }
     #
-    # remaining arguments(non flag/options) are inserted as [:arguments,
-    # args], eg:
+    # remaining arguments(non flag/options) are inserted as [:args]. eg:
     #     Hash.from_argv %w(--foo --bar=loo 123 now)
     # becomes  
-    #     { :foo => true, :bar => 'loo', :arguments => ["123", "now"] }
+    #     { :foo => true, :bar => 'loo', :args => ["123", "now"] }
     #
     def from_argv argv, opts = {}
       args, h = argv.clone, {}
@@ -32,7 +31,7 @@ module ApplixHash
         args.shift
       end 
       #[args, h]
-      h[:arguments] = args
+      h[:args] = args
       h
     end
   end # ClassMethods
