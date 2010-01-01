@@ -4,6 +4,40 @@ describe "Applix" do
   #it "fails" do
   #  fail "hey buddy, you should probably rename this file and start specing for real"
   #end
+  
+  it "should parse the old unit test..." do
+    #   -f                becomes { :f      => true }
+    #   --flag            becomes { :flag   => true }
+    (Hash.from_argv ["-f"])[:f].should == true
+    (Hash.from_argv ["--flag"])[:flag].should == true
+    #   --flag:false      becomes { :flag   => false }
+    (Hash.from_argv ["--flag:false"])[:flag].should == false
+
+    #   --option=value    becomes { :option => "value" }
+    (Hash.from_argv ["--opt=val"])[:opt].should == "val"
+
+    #   --int=1           becomes { :int    => "1" }
+    #   --int:1           becomes { :int    => 1 }
+    #   --float=2.3       becomes { :float  => "2.3" }
+    #   --float:2.3       becomes { :float  => 2.3 }
+    #   -f:1.234          becomes { :f      => 1.234 }
+    (Hash.from_argv ["--int=1"])[:int].should == "1"
+    (Hash.from_argv ["--int:1"])[:int].should == 1
+    (Hash.from_argv ["--float=2.3"])[:float].should == "2.3"
+    (Hash.from_argv ["--float:2.3"])[:float].should == 2.3
+    (Hash.from_argv ["-f:2.345"])[:f].should == 2.345
+
+    #   --txt="foo bar"   becomes { :txt    => "foo bar" }
+    #   --txt:'"foo bar"' becomes { :txt    => "foo bar" }
+    #   --txt:%w{foo bar} becomes { :txt    => ["foo", "bar"] }
+    (Hash.from_argv ['--txt="foo bar"'])[:txt].should == "foo bar"
+    (Hash.from_argv [%q|--txt:'"foo bar"'|])[:txt].should == "foo bar"
+    (Hash.from_argv [%q|--txt:'%w{foo bar}'|])[:txt].should == ["foo", "bar"]
+
+    #   --now:Time.now    becomes { :now    => Mon Jul 09 01:30:21 0200 2007 }
+    #dt = Time.now - H.parse("--now:Time.now")[1]
+    (t = (Hash.from_argv ["--now:Time.now"])[:now]).should_not == nil
+  end
 end
 
 
@@ -11,50 +45,7 @@ __END__
 
 port this from unit to rspec...
 
-#!/usr/bin/env ruby
-
-require 'test/unit'
-require 'pp'
-
-#require 'hash_from_argv'
-#H = Hash::FromArgvHelperNamespaceToAvoidPolution
-
-require 'applix-hash'
-H = ApplixHash
-
 class HashFromArgvTest < Test::Unit::TestCase
-
-  def test_applix_hash_parse
-    #   -f                becomes { :f      => true }
-    #   --flag            becomes { :flag   => true }
-    assert_equal [:f, true], H.parse("-f")
-    assert_equal [:flag, true], H.parse("--flag")
-    #   --flag:false      becomes { :flag   => false }
-    assert_equal [:flag, false], H.parse("--flag:false")
-
-    #   --option=value    becomes { :option => "value" }
-    assert_equal [:opt, "val"], H.parse("--opt=val")
-
-    #   --int=1           becomes { :int    => "1" }
-    #   --float=2.3       becomes { :float  => "2.3" }
-    #   --float:2.3       becomes { :float  => 2.3 }
-    #   -f:1.234          becomes { :f      => 1.234 }
-    assert_equal [:int, "1"], H.parse("--int=1")
-    assert_equal [:float, "2.3"], H.parse("--float=2.3")
-    assert_equal [:float, 2.3], H.parse("--float:2.3")
-    assert_equal [:f, 1.234], H.parse("-f:1.234")
-
-    #   --txt="foo bar"   becomes { :txt    => "foo bar" }
-    #   --txt:'"foo bar"' becomes { :txt    => "foo bar" }
-    #   --txt:%w{foo bar} becomes { :txt    => ["foo", "bar"] }
-    assert_equal [:txt, "foo bar"], H.parse('--txt="foo bar"')
-    assert_equal [:txt, "foo bar"], H.parse(%q{--txt:'"foo bar"'})
-    assert_equal [:txt, ["foo", "bar"]], H.parse(%q{--txt:'%w{foo bar}'})
-
-    #   --now:Time.now    becomes { :now    => Mon Jul 09 01:30:21 0200 2007 }
-    dt = Time.now - H.parse("--now:Time.now")[1]
-    assert dt < 0.02
-  end
 
   # XXX this is hacking the new Hash.from_argv interface into the old
   # dissect signature to make proper reuse of the existing unit tests
