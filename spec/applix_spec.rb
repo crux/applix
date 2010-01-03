@@ -8,13 +8,13 @@ describe "Applix" do
   it "should parse the old unit test..." do
     #   -f                becomes { :f      => true }
     #   --flag            becomes { :flag   => true }
-    (Hash.from_argv ["-f"])[:f].should == true
-    (Hash.from_argv ["--flag"])[:flag].should == true
+    (ApplixHash.parse '-f').should == [:f, true]
+    (ApplixHash.parse '--flag').should == [:flag, true]
     #   --flag:false      becomes { :flag   => false }
-    (Hash.from_argv ["--flag:false"])[:flag].should == false
+    (ApplixHash.parse '--flag:false').should == [:flag, false]
 
     #   --option=value    becomes { :option => "value" }
-    (Hash.from_argv ["--opt=val"])[:opt].should == "val"
+    (ApplixHash.parse '--opt=val').should == [:opt, 'val']
 
     #   --int=1           becomes { :int    => "1" }
     #   --int:1           becomes { :int    => 1 }
