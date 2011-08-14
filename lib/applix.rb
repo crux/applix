@@ -1,51 +1,69 @@
-module ApplixHash
+require 'applix/hash'
 
-  module ClassMethods
-    # #from_argv builds hash from ARGV like argument vector according to
-    # following examples: 
-    #
-    #   '-f'                  --> { :f      => true }
-    #   '--flag'              --> { :flag   => true }
-    #   '--flag:false'        --> { :flag   => false }
-    #   '--flag=false'        --> { :flag   => 'false' }
-    #   '--option=value'      --> { :option => "value" }
-    #   '--int=1'             --> { :int    => "1" }
-    #   '--float=2.3'         --> { :float  => "2.3" }
-    #   '--float:2.3'         --> { :float  => 2.3 }
-    #   '--txt="foo bar"'     --> { :txt    => "foo bar" }
-    #   '--txt:\'"foo bar"\'' --> { :txt    => "foo bar" }
-    #   '--txt:%w{foo bar}'   --> { :txt    => ["foo", "bar"] }
-    #   '--now:Time.now'      --> { :now    => #<Date: 3588595/2,0,2299161> }
-    #
-    # remaining arguments(non flag/options) are inserted as [:args]. eg:
-    #     Hash.from_argv %w(--foo --bar=loo 123 now)
-    # becomes  
-    #     { :foo => true, :bar => 'loo', :args => ["123", "now"] }
-    #
-    def from_argv argv, opts = {}
-      args, h = argv.clone, {}
-      while arg = args.first
-        key, val = ApplixHash.parse(arg)
-        break unless key
-        h[key] = val
-        args.shift
-      end 
-      #[args, h]
-      h[:args] = args
-      h
-    end
-  end # ClassMethods
+class Applix 
+  def self.main argv, defaults = {}, &blk
+    app = Applix.new
+    app.instance_eval(&blk)
+    app.run(argv, defaults)
+  end
 
-  # parse single flag/option into a [key, value] tuple. returns nil on non
-  # option/flag arguments.
-  def self.parse(arg)
-    m = /^(-(\w)|--(\w\w+))(([=:])(.+))?$/.match(arg)
-    return [nil, arg] unless m # neither option nor flag -> straight arg
-    key = (m[2] || m[3]).to_sym
-    value = m[6][/(['"]?)(.*)\1$/,2] rescue true
-    value = eval(value) if m[5] == ':'
-    [key, value]
+  def initialize
+  end
+
+  def run argv, defaults
+    options = (Hash.from_argv argv)
+    options = (defaults.merge options)
+    args = options[:args]
+
+    # which task to run depends on first line argument..
+    (name = args.shift) or (raise "no task")
+    (task = tasks[name.to_sym]) or (raise "no such task: '#{name}' | #{tasks.inspect}")
+    task[:code].call(*args, options)
+  end
+
+  private 
+
+  def handle name, &blk
+    puts "define task: #{name} ==> #{blk}"
+    tasks[name.to_sym] = { :code => blk }
+  end
+
+  def tasks
+    @tasks ||= {}
   end
 end
 
-Hash.extend ApplixHash::ClassMethods
+__END__
+#
+def main args, options = {}
+  options = (Defaults.merge options)
+  options[:date] = Date.parse(options[:date]) # up-type string date
+
+  action = args.shift or raise "no action"
+
+  # account is an command line arg but password is prompted, never have that in
+  # a config or on the command line!
+  #
+  username = args.shift # or raise "no username"
+  password = prompt_for_password
+
+  # which method to run depend on first command line argument..
+  send action, username, password, options
+end
+
+params = Hash.from_argv ARGV
+begin 
+  main params[:args], params
+rescue => e
+  puts <<-EOT
+
+## #{e}
+
+usage: #{__FILE__} <task> <username>
+
+--- #{e.backtrace.join "\n    "}
+  EOT
+end
+
+__END__
+
