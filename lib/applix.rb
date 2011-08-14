@@ -5,9 +5,15 @@ class Applix
     app = Applix.new
     app.instance_eval(&blk)
     app.run(argv, defaults)
-  end
+  rescue => e
+    puts <<-EOT
 
-  def initialize
+## #{e}
+
+usage: #{__FILE__} <args...>
+
+--- #{e.backtrace.join "\n    "}
+    EOT
   end
 
   def run argv, defaults
