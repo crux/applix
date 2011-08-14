@@ -9,6 +9,27 @@ describe "Applix" do
     end.should == :func_return
   end
 
+  it 'should pass arguments to function' do
+    argv = ['func', 'p1', 'p2']
+    Applix.main(argv) do
+      handle(:func) { |*args, options| args }
+    end.should == %w{p1 p2}
+  end
+
+  it 'should pass emtpy options to function on default' do
+    argv = %w(func)
+    Applix.main(argv) do
+      handle(:func) { |*_, options| options }
+    end.should == {}
+  end
+
+  it 'should pass a processed options hash' do
+    argv = %w(-a --bar func)
+    Applix.main(argv) do
+      handle(:func) { |*_, options| options }
+    end.should == {:a => true, :bar => true}
+  end
+
   it "should parse the old unit test..." do
     #   -f                becomes { :f      => true }
     #   --flag            becomes { :flag   => true }

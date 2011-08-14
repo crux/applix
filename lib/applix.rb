@@ -13,18 +13,17 @@ class Applix
   def run argv, defaults
     options = (Hash.from_argv argv)
     options = (defaults.merge options)
-    args = options[:args]
+    args = (options.delete :args)
 
     # which task to run depends on first line argument..
     (name = args.shift) or (raise "no task")
-    (task = tasks[name.to_sym]) or (raise "no such task: '#{name}' | #{tasks.inspect}")
+    (task = tasks[name.to_sym]) or (raise "no such task: '#{name}'")
     task[:code].call(*args, options)
   end
 
   private 
 
   def handle name, &blk
-    puts "define task: #{name} ==> #{blk}"
     tasks[name.to_sym] = { :code => blk }
   end
 
