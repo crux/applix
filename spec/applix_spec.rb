@@ -1,10 +1,14 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 describe "Applix" do
-  #it "fails" do
-  #  fail "hey buddy, you should probably rename this file and start specing for real"
-  #end
-  
+
+  it 'should call actions by first argument names' do
+    argv = ['func']
+    Applix.main(argv) do
+      handle(:func) { :func_return }
+    end.should == :func_return
+  end
+
   it "should parse the old unit test..." do
     #   -f                becomes { :f      => true }
     #   --flag            becomes { :flag   => true }
