@@ -1,4 +1,12 @@
 require 'rubygems'
+require 'bundler'
+begin
+  Bundler.setup(:default, :development)
+rescue Bundler::BundlerError => e
+  $stderr.puts e.message
+  $stderr.puts "Run `bundle install` to install missing gems"
+  exit e.status_code
+end
 require 'rake'
 
 begin
@@ -42,8 +50,9 @@ begin
 rescue LoadError
   puts "Jeweler (or a dependency) not available. Install it with: sudo gem install jeweler"
 end
+Jeweler::RubygemsDotOrgTasks.new
 
-
+require 'rspec/core'
 require "rspec/core/rake_task"
 namespace :test do
   desc "Run all specs."
