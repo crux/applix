@@ -2,6 +2,42 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 describe "Applix" do
 
+  it 'runs before callback before handle calls' do
+    argv = ['func']
+    Applix.main(argv) do
+
+      # @pre_handle will be available in handle invocations
+      pre_handle { 
+        @pre_handle = :pre_handle 
+      }
+
+      # @post_handle will NOT make it into the handle invocation
+      post_handle { 
+        @post_handle = :post_handle 
+      }
+
+      handle(:func) { 
+        [@pre_handle, @post_handle] 
+      }
+    end.should == [:pre_handle, nil]
+  end
+
+  it 'runs post_handle callback after handle' do
+    t_handle = Applix.main([:func]) do
+      post_handle { 
+        $t_post_handle = Time.now 
+      }
+      handle(:func) { 
+        # post_handle block should not have been executed yet
+        $t_post_handle.should == nil
+        Time.now 
+      }
+    end
+    t_handle.should_not == nil
+    $t_post_handle.should_not == nil
+    (t_handle < $t_post_handle).should == true
+  end
+
   it 'should call actions by first argument names' do
     argv = ['func']
     Applix.main(argv) do

@@ -5,6 +5,7 @@ class Applix
     app = Applix.new
     app.instance_eval(&blk)
     app.run(argv, defaults)
+
   rescue => e
     puts <<-EOT
 
@@ -24,10 +25,24 @@ usage: #{__FILE__} <args...>
     # which task to run depends on first line argument..
     (name = args.shift) or (raise "no task")
     (task = tasks[name.to_sym]) or (raise "no such task: '#{name}'")
-    task[:code].call(*args, options)
+    rc = task[:code].call(*args, options)
+
+    # pre_handle callbacks are run immediatly from the instance_eval block but
+    # post_handle callbacks are called after the run
+    @post_handle_cb.call unless @post_handle_cb.nil?
+
+    rc # return result code from handle callbacks, not the post_handle_cb
   end
 
   private 
+
+  def pre_handle &blk
+    blk.call
+  end
+
+  def post_handle &blk
+    @post_handle_cb = blk
+  end
 
   def handle name, &blk
     tasks[name.to_sym] = { :code => blk }
