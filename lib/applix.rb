@@ -11,7 +11,7 @@ class Applix
 
 ## #{e}
 
-usage: #{__FILE__} <args...>
+usage: #{$0} <args...>
 
 --- #{e.backtrace.join "\n    "}
     EOT
