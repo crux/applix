@@ -22,14 +22,16 @@ usage: #{__FILE__} <args...>
     options = (defaults.merge options)
     args = (options.delete :args)
 
+    # pre handle
+    @pre_handle_cb.call(*args, options) unless @pre_handle_cb.nil?
+
     # which task to run depends on first line argument..
     (name = args.shift) or (raise "no task")
     (task = tasks[name.to_sym]) or (raise "no such task: '#{name}'")
     rc = task[:code].call(*args, options)
 
-    # pre_handle callbacks are run immediatly from the instance_eval block but
-    # post_handle callbacks are called after the run
-    @post_handle_cb.call unless @post_handle_cb.nil?
+    # post handle
+    @post_handle_cb.call(*args, options) unless @post_handle_cb.nil?
 
     rc # return result code from handle callbacks, not the post_handle_cb
   end
@@ -37,7 +39,7 @@ usage: #{__FILE__} <args...>
   private 
 
   def pre_handle &blk
-    blk.call
+    @pre_handle_cb = blk
   end
 
   def post_handle &blk

@@ -2,6 +2,19 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 describe "Applix" do
 
+  it 'pre_handle has read/write access to args and options' do
+    Applix.main(['func']) do
+      pre_handle { |*args, options|
+        args.should == ['func']
+        options[:pre_handle] = Time.now
+      }
+
+      handle(:func) { |*_, options| 
+        options[:pre_handle]
+      }
+    end.should_not == nil
+  end
+
   it 'runs before callback before handle calls' do
     argv = ['func']
     Applix.main(argv) do
