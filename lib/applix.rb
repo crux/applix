@@ -25,10 +25,14 @@ usage: #{$0} <args...>
     # pre handle
     @pre_handle_cb.call(*args, options) unless @pre_handle_cb.nil?
 
-    # which task to run depends on first line argument..
-    (name = args.shift) or (raise "no task")
-    (task = tasks[name.to_sym]) or (raise "no such task: '#{name}'")
-    rc = task[:code].call(*args, options)
+    # it's either :any
+    if task = tasks[:any] 
+      rc = task[:code].call(*args, options)
+    else # or the task defined by the first argument
+      (name = args.shift) or (raise "no task")
+      (task = tasks[name.to_sym]) or (raise "no such task: '#{name}'")
+      rc = task[:code].call(*args, options)
+    end
 
     # post handle
     @post_handle_cb.call(*args, options) unless @post_handle_cb.nil?
@@ -44,6 +48,10 @@ usage: #{$0} <args...>
 
   def post_handle &blk
     @post_handle_cb = blk
+  end
+
+  def any &blk
+    tasks[:any] = { :code => blk }
   end
 
   def handle name, &blk

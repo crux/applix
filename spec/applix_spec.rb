@@ -16,8 +16,7 @@ describe "Applix" do
   end
 
   it 'runs before callback before handle calls' do
-    argv = ['func']
-    Applix.main(argv) do
+    Applix.main(['func']) do
 
       # @pre_handle will be available in handle invocations
       pre_handle { 
@@ -49,6 +48,17 @@ describe "Applix" do
     t_handle.should_not == nil
     $t_post_handle.should_not == nil
     (t_handle < $t_post_handle).should == true
+  end
+
+  it 'supports :any when task does not depend on first arguments' do
+    %w(bla fasel laber red).each do |name|
+      Applix.main([name]) do
+        any do |*args, options| 
+          args.should == [name]
+          options.should == {}
+        end
+      end
+    end
   end
 
   it 'should call actions by first argument names' do
