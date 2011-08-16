@@ -2,45 +2,59 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 describe "Applix" do
 
-  it 'pre_handle has read/write access to args and options' do
+  it 'prolog has read/write access to args and options' do
     Applix.main(['func']) do
-      pre_handle { |*args, options|
+      prolog { |*args, options|
         args.should == ['func']
-        options[:pre_handle] = Time.now
+        options[:prolog] = Time.now
       }
 
       handle(:func) { |*_, options| 
-        options[:pre_handle]
+        options[:prolog]
       }
     end.should_not == nil
+  end
+
+  it 'epilog has access to task handler results' do
+    Applix.main(['func']) do
+      # @epilog will NOT make it into the handle invocation
+      epilog { |rc, *_| 
+        rc.should == [1, 2, 3]
+        rc.reverse
+      }
+      handle(:func) { [1, 2, 3] }
+
+    end.should == [3, 2, 1]
   end
 
   it 'runs before callback before handle calls' do
     Applix.main(['func']) do
 
-      # @pre_handle will be available in handle invocations
-      pre_handle { 
-        @pre_handle = :pre_handle 
+      # @prolog will be available in handle invocations
+      prolog { 
+        @prolog = :prolog 
       }
 
-      # @post_handle will NOT make it into the handle invocation
-      post_handle { 
-        @post_handle = :post_handle 
+      # @epilog will NOT make it into the handle invocation
+      epilog { |rc, *_|
+        @epilog = :epilog 
+        rc 
       }
 
       handle(:func) { 
-        [@pre_handle, @post_handle] 
+        [@prolog, @epilog] 
       }
-    end.should == [:pre_handle, nil]
+    end.should == [:prolog, nil]
   end
 
-  it 'runs post_handle callback after handle' do
+  it 'runs epilog callback after handle' do
     t_handle = Applix.main([:func]) do
-      post_handle { 
+      epilog { |rc, *_| 
         $t_post_handle = Time.now 
+        rc
       }
       handle(:func) { 
-        # post_handle block should not have been executed yet
+        # epilog block should not have been executed yet
         $t_post_handle.should == nil
         Time.now 
       }

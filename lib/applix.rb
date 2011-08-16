@@ -23,7 +23,7 @@ usage: #{$0} <args...>
     args = (options.delete :args)
 
     # pre handle
-    @pre_handle_cb.call(*args, options) unless @pre_handle_cb.nil?
+    @prolog_cb.call(*args, options) unless @prolog_cb.nil?
 
     # it's either :any
     if task = tasks[:any] 
@@ -35,19 +35,21 @@ usage: #{$0} <args...>
     end
 
     # post handle
-    @post_handle_cb.call(*args, options) unless @post_handle_cb.nil?
+    unless @epilog_cb.nil?
+      rc = @epilog_cb.call(rc, *args, options)
+    end
 
-    rc # return result code from handle callbacks, not the post_handle_cb
+    rc # return result code from handle callbacks, not the epilog_cb
   end
 
   private 
 
-  def pre_handle &blk
-    @pre_handle_cb = blk
+  def prolog &blk
+    @prolog_cb = blk
   end
 
-  def post_handle &blk
-    @post_handle_cb = blk
+  def epilog &blk
+    @epilog_cb = blk
   end
 
   def any &blk
