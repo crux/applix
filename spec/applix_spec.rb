@@ -52,10 +52,10 @@ describe "Applix" do
 
   it 'supports :any when task does not depend on first arguments' do
     %w(bla fasel laber red).each do |name|
-      Applix.main([name]) do
+      Applix.main(['--opt1', name, "param1", "param2"], {:opt2 => false}) do
         any do |*args, options| 
-          args.should == [name]
-          options.should == {}
+          args.should == [name, "param1", "param2"]
+          options.should == {:opt1 => true, :opt2 => false}
         end
       end
     end
