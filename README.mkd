@@ -1,6 +1,34 @@
 # applix
 
-`Hash#from_argv` builds a hash from ARGV like argument vector according to
+Building command line apps like:
+
+    Defaults = { :verbose => false }
+
+    Applix.main(ARGV, Defaults) do 
+        handle(:one) do |*args, opts|
+            if opts[:verbose]
+                puts "arguments: #{args.inspect}"
+                puts "options: #{opts.inspect}"
+            end
+        end
+
+        handle(:two) do |*args, opts|
+            if opts[:verbose]
+                puts "arguments: #{args.inspect}"
+                puts "options: #{opts.inspect}"
+            end
+        end
+    end
+
+can be called like:
+
+    $ app --verbose one 1234 x y z
+    arguments: ["1234", "x", "y", "z"]
+    options: {:verbose => true}
+    $
+
+Command line options will be processed with Hash#from_argv. `Hash#from_argv`
+builds a hash from ARGV like argument vector according to
 following examples: 
 
     '-f'                  --> { :f      => true }
