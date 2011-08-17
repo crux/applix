@@ -22,8 +22,8 @@ usage: #{$0} <args...>
     options = (defaults.merge options)
     args = (options.delete :args)
 
-    # pre handle
-    @prolog_cb.call(*args, options) unless @prolog_cb.nil?
+    # pre handle, can modify args & options
+    @prolog_cb.call(args, options) unless @prolog_cb.nil?
 
     # it's either :any
     if task = tasks[:any] 
@@ -36,7 +36,7 @@ usage: #{$0} <args...>
 
     # post handle
     unless @epilog_cb.nil?
-      rc = @epilog_cb.call(rc, *args, options)
+      rc = @epilog_cb.call(rc, args, options)
     end
 
     rc # return result code from handle callbacks, not the epilog_cb

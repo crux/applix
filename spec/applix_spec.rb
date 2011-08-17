@@ -2,9 +2,20 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 describe "Applix" do
 
+  it 'prolog can even temper with arguments to modify the handle sequence' do
+    Applix.main(['a', 'b']) do
+      prolog { |args, options|
+        args.should == ['a', 'b']
+        args.reverse!
+      }
+      handle(:a) { raise 'shoule not be called!' }
+      handle(:b) { :b_was_called }
+    end.should == :b_was_called
+  end
+
   it 'prolog has read/write access to args and options' do
     Applix.main(['func']) do
-      prolog { |*args, options|
+      prolog { |args, options|
         args.should == ['func']
         options[:prolog] = Time.now
       }
