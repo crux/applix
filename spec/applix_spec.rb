@@ -75,6 +75,26 @@ describe "Applix" do
     (t_handle < $t_post_handle).should == true
   end
 
+  it 'supports :any as fallback on command lines without matching task' do
+    Applix.main(%w(--opt1 foo param1 param2), {:opt2 => false}) do
+      handle(:not_called) { raise "can't possible happen" }
+      any do |*args, options| 
+        args.should == ["foo", "param1", "param2"]
+        options.should == {:opt1 => true, :opt2 => false}
+      end
+    end
+  end
+
+  it 'any does not shadow existing tasks' do
+    Applix.main(['--opt1', 'foo', "param1", "param2"], {:opt2 => false}) do
+      handle(:foo) do |*args, options| 
+        args.should == ["param1", "param2"]
+        options.should == {:opt1 => true, :opt2 => false}
+      end
+      any { raise "can't possible happen" }
+    end
+  end
+
   it 'supports :any when task does not depend on first arguments' do
     %w(bla fasel laber red).each do |name|
       Applix.main(['--opt1', name, "param1", "param2"], {:opt2 => false}) do
