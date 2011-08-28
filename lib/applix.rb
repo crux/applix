@@ -50,8 +50,12 @@ usage: #{$0} <args...>
     # see it as its first argument, 
     (args.unshift name.to_s) if(name != :any && task[:name] == :any)
 
-    # do the call
-    rc = task[:code].call(*args, options)
+    # cluster for nesting or direct calling?
+    if task[:cluster]
+      rc = Applix.main(args, options, &task[:code])
+    else
+      rc = task[:code].call(*args, options)
+    end
 
     # post handle
     unless @epilog_cb.nil?
@@ -73,6 +77,10 @@ usage: #{$0} <args...>
 
   def any &blk
     tasks[:any] = { :name => :any, :code => blk }
+  end
+
+  def cluster name, &blk
+    tasks[name.to_sym] = { :name => name, :code => blk, :cluster => true }
   end
 
   def handle name, &blk

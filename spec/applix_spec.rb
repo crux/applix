@@ -2,13 +2,44 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 describe "Applix" do
 
+  it 'support :cluster for nesting' do
+    args = %w(-a -b:2 foo bar p1 p2)
+    Applix.main(args) do
+      handle(:foo) do 
+        raise 'should not be called!' 
+      end
+      cluster(:foo) do
+        handle(:bar) do |*args, options|
+          args.should == %w(p1 p2)
+          options.should == {:a => true, :b => 2}
+          args
+        end
+      end
+    end.should == %w{p1 p2}
+  end
+
+  it 'can even cluster clusters' do
+    args = %w(foo bar f p1 p2)
+    Applix.main(args) do
+      cluster(:foo) do
+        cluster(:bar) do
+          handle(:f) do |*args, options|
+            args.should == %w(p1 p2)
+            options.should == {}
+            args
+          end
+        end
+      end
+    end.should == %w{p1 p2}
+  end
+
   it 'prolog can even temper with arguments to modify the handle sequence' do
     Applix.main(['a', 'b']) do
       prolog { |args, options|
         args.should == ['a', 'b']
         args.reverse!
       }
-      handle(:a) { raise 'shoule not be called!' }
+      handle(:a) { raise 'should not be called!' }
       handle(:b) { :b_was_called }
     end.should == :b_was_called
   end
