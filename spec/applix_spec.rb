@@ -2,6 +2,19 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 describe "Applix" do
 
+  it 'calls cluster prolog' do
+    Applix.main(%w(foo a b)) do
+      cluster(:foo) do
+        prolog { |args, options|
+          args.should == %w(a b)
+          args.reverse!
+        }
+        handle(:a) { raise 'should not be called!' }
+        handle(:b) { :b_was_called }
+      end
+    end.should == :b_was_called
+  end
+
   it 'support :cluster for nesting' do
     args = %w(-a -b:2 foo bar p1 p2)
     Applix.main(args) do
