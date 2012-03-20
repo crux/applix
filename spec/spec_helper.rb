@@ -1,10 +1,14 @@
-$LOAD_PATH.unshift(File.dirname(__FILE__))
-$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
-require 'rubygems'
-require 'rspec'
+$:.unshift(File.dirname(__FILE__))
+$:.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
+
+#require 'rspec/mocks'
 require 'applix'
 require 'applix/oattr'
 
-Rspec.configure do |config|
-  config.mock_with :rspec
+RSpec.configure do |config|
+  config.before :each do
+  end
+
+  config.after :each do
+  end
 end
