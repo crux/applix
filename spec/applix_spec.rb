@@ -3,13 +3,11 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 describe "Applix" do
 
   it 'cluster defaults shadow globals' do
-    args = %w(-c=5 global cluster)
+    args = %w(-c=5 cluster cmd)
     Applix.main(args, a: :global, b: 2, :cluster => {a: :cluster, c: 3}) do
-      handle(:cluster) do 
-        raise 'should not be called!'
-      end
-      cluster(:global) do
-        handle(:cluster) do |*args, options|
+      handle(:cmd) { raise 'should not be called!' }
+      cluster(:cluster) do
+        handle(:cmd) do |*args, options|
           options.should == {:a => :cluster, :b => 2, :c => '5'}
           args
         end

@@ -53,7 +53,7 @@ usage: #{$0} <args...>
     # cluster for nesting or direct calling?
     if task[:cluster]
       #rc = Applix.main(args, options, &task[:code])
-      cluster_task = args.first.to_sym
+      cluster_task = task[:name].to_sym
       cluster_options = options.merge(options[cluster_task] || {})
       cluster_options.delete(cluster_task)
       cluster_options.merge!(Hash.from_argv argv)
