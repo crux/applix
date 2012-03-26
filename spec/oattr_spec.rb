@@ -1,6 +1,6 @@
-require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
+require 'spec_helper'
 
-describe "OAttr" do
+describe OAttr do
   it "should define a module" do
     OAttr.should_not == nil
   end
