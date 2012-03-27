@@ -118,6 +118,7 @@ describe Applix do
   it 'runs epilog callback after handle' do
     t_handle = Applix.main([:func]) do
       epilog { |rc, *_| 
+        sleep 0.1
         $t_post_handle = Time.now 
         rc
       }
@@ -129,7 +130,8 @@ describe Applix do
     end
     t_handle.should_not == nil
     $t_post_handle.should_not == nil
-    (t_handle < $t_post_handle).should == true
+    #(t_handle < $t_post_handle).should == true
+    t_handle.should be < $t_post_handle
   end
 
   it 'supports :any as fallback on command lines without matching task' do
