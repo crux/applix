@@ -40,8 +40,13 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'guard-rspec'
   s.add_development_dependency 'growl'
 
-  s.add_development_dependency 'ruby-debug19'
-  s.add_development_dependency 'ruby-debug-base19'
+  if RUBY_PLATFORM.match /java/i
+    s.add_development_dependency 'ruby-debug'
+  else
+    RUBY_VERSION.match /1.9.3/ and (raise "no ruby-debug in ruby 1.9.3")
+    s.add_development_dependency 'ruby-debug19'
+    s.add_development_dependency 'ruby-debug-base19'
+  end
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
