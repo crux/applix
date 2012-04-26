@@ -1,6 +1,7 @@
-*.sw?
+# Ignore logfiles and tempfiles.
+/log/*
+/tmp
+
+## PROJECT::SPECIFIC
 Gemfile.lock
-.DS_Store
-coverage
-rdoc
-pkg
+README.html
