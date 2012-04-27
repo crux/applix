@@ -12,8 +12,8 @@ Gem::Specification.new do |s|
   s.summary     = 'extracting typed option hashes from command line arguments'
   s.description = %q{
     ApplixHash#from_argv builds hashes from ARGV like argument vectors
-    according to following examples: 
-      
+    according to following examples:
+
          '-f'                  --> { :f      => true }
          '--flag'              --> { :flag   => true }
          '--flag:false'        --> { :flag   => false }
@@ -26,11 +26,11 @@ Gem::Specification.new do |s|
          '--txt:'"foo bar"''   --> { :txt    => "foo bar" }
          '--txt:%w{foo bar}'   --> { :txt    => ["foo", "bar"] }
          '--now:Time.now'      --> { :now    => #<Date: 3588595/2,0,2299161> }
-      
+
      remaining arguments(non flag/options) are inserted as [:arguments,
      args], eg:
          Hash.from_argv %w(--foo --bar=loo 123 now)
-     becomes  
+     becomes
          { :foo => true, :bar => 'loo', :arguments => ["123", "now"] }
   }
 
@@ -51,9 +51,10 @@ Gem::Specification.new do |s|
     s.add_development_dependency 'debugger'
   end
 
+  # version class is read from
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
-  s.executables   = `git ls-files -- bin/*`.split("\n").map do |f| 
+  s.executables   = `git ls-files -- bin/*`.split("\n").map do |f|
     File.basename(f)
   end
   s.require_paths = ["lib"]

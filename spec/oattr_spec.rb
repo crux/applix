@@ -17,18 +17,18 @@ describe OAttr do
       Foo.oattr.should_not == nil
     end
     it "should define a bar method" do
-      class Foo; 
+      class Foo;
         oattr :bar
-        def initialize; @options = { :bar => 123}; end; 
+        def initialize; @options = { :bar => 123}; end;
       end
       (Foo.new.respond_to? :bar).should == true
       Foo.new.bar.should == 123
     end
 
     it "should handle container options" do
-      class Foo; 
+      class Foo;
         oattr :xxx, :foo, :container => :params
-        def initialize; @params = { :xxx => 321}; end; 
+        def initialize; @params = { :xxx => 321}; end;
       end
       (Foo.new.respond_to? :xxx).should == true
       Foo.new.xxx.should == 321

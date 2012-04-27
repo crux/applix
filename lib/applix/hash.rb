@@ -2,7 +2,7 @@ module ApplixHash
 
   module ClassMethods
     # #from_argv builds hash from ARGV like argument vector according to
-    # following examples: 
+    # following examples:
     #
     #   '-f'                  --> { :f      => true }
     #   '--flag'              --> { :flag   => true }
@@ -19,7 +19,7 @@ module ApplixHash
     #
     # remaining arguments(non flag/options) are inserted as [:args]. eg:
     #     Hash.from_argv %w(--foo --bar=loo 123 now)
-    # becomes  
+    # becomes
     #     { :foo => true, :bar => 'loo', :args => ["123", "now"] }
     #
     def from_argv argv, opts = {}
@@ -29,7 +29,7 @@ module ApplixHash
         break unless key
         h[key] = val
         args.shift
-      end 
+      end
       #[args, h]
       h[:args] = args
       h

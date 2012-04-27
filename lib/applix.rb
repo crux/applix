@@ -1,6 +1,9 @@
 require 'applix/hash'
 
-class Applix 
+# command line options & argument routing. Typical usage Applix.main(ARGV).
+# see also: ApplixHash for argument parsing options.
+#
+class Applix
   def self.main argv, defaults = {}, &blk
     app = Applix.new
     app.instance_eval(&blk)
@@ -30,7 +33,7 @@ usage: #{$0} <args...>
 
 
     # logic table for dispatching the command line onto an action
-    # 
+    #
     # id | name  exits? any | action
     # -- | -----------------+--------------
     #  1 |  -            -  | error: no any, mapped to #3 with name == :any
@@ -47,7 +50,7 @@ usage: #{$0} <args...>
     task or (raise "no such task: '#{name}'")
 
     # case #4: we must un-shift the name back into the args list to lets any
-    # see it as its first argument, 
+    # see it as its first argument,
     (args.unshift name.to_s) if(name != :any && task[:name] == :any)
 
     # cluster for nesting or direct calling?
@@ -70,7 +73,7 @@ usage: #{$0} <args...>
     rc # return result code from handle callbacks, not the epilog_cb
   end
 
-  private 
+  private
 
   def prolog &blk
     @prolog_cb = blk

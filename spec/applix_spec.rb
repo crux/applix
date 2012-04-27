@@ -31,8 +31,8 @@ describe Applix do
   it 'support :cluster for nesting' do
     args = %w(-a -b:2 foo bar p1 p2)
     Applix.main(args) do
-      handle(:foo) do 
-        raise 'should not be called!' 
+      handle(:foo) do
+        raise 'should not be called!'
       end
       cluster(:foo) do
         handle(:bar) do |*args, options|
@@ -77,7 +77,7 @@ describe Applix do
         options[:prolog] = Time.now
       }
 
-      handle(:func) { |*_, options| 
+      handle(:func) { |*_, options|
         options[:prolog]
       }
     end.should_not == nil
@@ -86,7 +86,7 @@ describe Applix do
   it 'epilog has access to task handler results' do
     Applix.main(['func']) do
       # @epilog will NOT make it into the handle invocation
-      epilog { |rc, *_| 
+      epilog { |rc, *_|
         rc.should == [1, 2, 3]
         rc.reverse
       }
@@ -99,18 +99,18 @@ describe Applix do
     Applix.main(['func']) do
 
       # @prolog will be available in handle invocations
-      prolog { 
-        @prolog = :prolog 
+      prolog {
+        @prolog = :prolog
       }
 
       # @epilog will NOT make it into the handle invocation
       epilog { |rc, *_|
-        @epilog = :epilog 
-        rc 
+        @epilog = :epilog
+        rc
       }
 
-      handle(:func) { 
-        [@prolog, @epilog] 
+      handle(:func) {
+        [@prolog, @epilog]
       }
     end.should == [:prolog, nil]
   end
@@ -118,12 +118,12 @@ describe Applix do
   it 'runs epilog callback after handle' do
     last_action = nil
     Applix.main([:func]) do
-      epilog { |rc, *_| 
+      epilog { |rc, *_|
         # handle was already executed
         last_action.should == :handle
         last_action = :epilog
       }
-      handle(:func) { 
+      handle(:func) {
         # epilog block should not have been executed yet
         last_action.should == nil
         last_action = :handle
@@ -135,7 +135,7 @@ describe Applix do
   it 'supports :any as fallback on command lines without matching task' do
     Applix.main(%w(--opt1 foo param1 param2), {:opt2 => false}) do
       handle(:not_called) { raise "can't possible happen" }
-      any do |*args, options| 
+      any do |*args, options|
         args.should == ["foo", "param1", "param2"]
         options.should == {:opt1 => true, :opt2 => false}
       end
@@ -144,7 +144,7 @@ describe Applix do
 
   it 'any does not shadow existing tasks' do
     Applix.main(['--opt1', 'foo', "param1", "param2"], {:opt2 => false}) do
-      handle(:foo) do |*args, options| 
+      handle(:foo) do |*args, options|
         args.should == ["param1", "param2"]
         options.should == {:opt1 => true, :opt2 => false}
       end
@@ -155,7 +155,7 @@ describe Applix do
   it 'supports :any when task does not depend on first arguments' do
     %w(bla fasel laber red).each do |name|
       Applix.main(['--opt1', name, "param1", "param2"], {:opt2 => false}) do
-        any do |*args, options| 
+        any do |*args, options|
           args.should == [name, "param1", "param2"]
           options.should == {:opt1 => true, :opt2 => false}
         end
