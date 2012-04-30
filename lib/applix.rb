@@ -1,35 +1,48 @@
 require 'applix/hash'
 
-# command line options & argument routing. Typical usage Applix.main(ARGV).
-# see also: ApplixHash for argument parsing options.
+# command line options & argument routing controller. A typical usage
+# Applix.main(ARGV).  see also: ApplixHash for argument parsing options.
 #
 class Applix
-  def self.main argv, defaults = {}, &blk
-    app = Applix.new
-    app.instance_eval(&blk)
-    app.run(argv, defaults, &blk)
-  end
 
-  def self.main! argv, defaults = {}, &blk
-    self.main argv, defaults, &blk
+  #  prints primitve usage in case of error,
+  #
+  def self.main argv, app_defaults = {}, &blk
+    self.main!(argv, app_defaults, &blk)
+
   rescue => e
-    puts <<-EOT
+    puts <<-TXT
 
-## #{e}
+usage: #{$0} <args...>"
 
-usage: #{$0} <args...>
-
---- #{e.backtrace.join "\n    "}
-    EOT
+    TXT
   end
 
-  def run argv, defaults
-    options = (Hash.from_argv argv)
-    options = (defaults.merge options)
-    args = (options.delete :args)
+  #  raises exception on error 
+  #  dumps callstack in case of error when --debug is enabled
+  #
+  def self.main! argv, app_defaults = {}, &blk
+    app = Applix.new(app_defaults.merge(Hash.from_argv argv))
+    app.instance_eval(&blk)
+    app.run(argv, app_defaults, &blk)
+
+  rescue => e
+    #app.debug? and (puts %[ !! #{e}:\n#{e.backtrace.join "\n"}])
+    (puts %[ !! #{e}:\n#{e.backtrace.join "\n"}]) if app.debug? 
+    raise
+  end
+
+  def debug?
+    @options[:debug] == true
+  end
+
+  def run argv, defaults = {}
+    # run defaults are overloaded with argv command line options
+    run_options = defaults.merge(Hash.from_argv argv)
+    args = (run_options.delete :args)
 
     # pre handle, can modify args & options
-    @prolog_cb.call(args, options) unless @prolog_cb.nil?
+    @prolog_cb.call(args, run_options) unless @prolog_cb.nil?
 
 
     # logic table for dispatching the command line onto an action
@@ -57,23 +70,31 @@ usage: #{$0} <args...>
     if task[:cluster]
       #rc = Applix.main(args, options, &task[:code])
       cluster_task = task[:name].to_sym
-      cluster_options = options.merge(options[cluster_task] || {})
+      cluster_options = run_options.merge(run_options[cluster_task] || {})
       cluster_options.delete(cluster_task)
       cluster_options.merge!(Hash.from_argv argv)
       rc = Applix.main(args, cluster_options, &task[:code])
     else
-      rc = task[:code].call(*args, options)
+      rc = task[:code].call(*args, run_options)
     end
 
     # post handle
     unless @epilog_cb.nil?
-      rc = @epilog_cb.call(rc, args, options)
+      rc = @epilog_cb.call(rc, args, run_options)
     end
 
     rc # return result code from handle callbacks, not the epilog_cb
   end
 
   private
+
+  Defaults = {
+    debug:  false,
+  }
+
+  def initialize app_defaults = {}
+    @options = (Defaults.merge app_defaults)
+  end
 
   def prolog &blk
     @prolog_cb = blk

@@ -2,6 +2,35 @@ require 'spec_helper'
 
 describe Applix do
 
+  context 'main' do
+    it 'catches unknown task errors' do 
+      expect { Applix.main(%w(no-such-task)) {} }.
+        should_not raise_error /no-such-task/
+    end
+
+    context 'with captured I/O streams' do
+      it 'prints a minimal (better than nothing?) usage line on errors' do 
+        output = capture(:stdout) { Applix.main(%w(no-such-task)) {} }
+        output.should =~ /usage: /
+      end
+
+      it 'suppresses the callstack on errors' do 
+        output = capture(:stdout) { Applix.main(%w(no-such-task)) {} }
+        output.should_not =~ /no such task:/
+      end
+
+      it 'shows callstack on --debug option' do 
+        output = capture(:stdout) { Applix.main(%w(--debug no-such-task)) {} }
+        output.should =~ / !! no such task:/
+      end
+
+      it 'dumps a stacktrace on main with a !' do 
+        expect { Applix.main!(%w(no-such-task)) {} }.
+          should raise_error /no such task:/
+      end
+    end
+  end
+
   it 'cluster defaults shadow globals' do
     args = %w(-c=5 cluster cmd)
     Applix.main(args, a: :global, b: 2, :cluster => {a: :cluster, c: 3}) do
@@ -170,25 +199,24 @@ describe Applix do
     end.should == :func_return
   end
 
-  it 'should pass arguments to function' do
+  it 'passes arguments to function' do
     argv = ['func', 'p1', 'p2']
-    Applix.main(argv) do
-      handle(:func) { |*args, options| args }
-    end.should == %w{p1 p2}
+    subject = Applix.main(argv) { handle(:func) {|*args, options| args} }
+    subject.should eq(%w(p1 p2))
   end
 
-  it 'should pass emtpy options to function on default' do
+  it 'passes a default options hash to function' do
     argv = %w(func)
     Applix.main(argv) do
       handle(:func) { |*_, options| options }
-    end.should == {}
+    end.should eq({})
   end
 
   it 'should pass a processed options hash' do
     argv = %w(-a --bar func)
     Applix.main(argv) do
       handle(:func) { |*_, options| options }
-    end.should == {:a => true, :bar => true}
+    end.should include(:a => true, :bar => true)
   end
 
   it "should parse the old unit test..." do

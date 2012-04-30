@@ -12,3 +12,18 @@ RSpec.configure do |config|
   config.after :each do
   end
 end
+
+# captures standard output streams to help testing console I/O
+#
+def capture(*streams)
+  streams.map! { |stream| stream.to_s }
+  begin
+    result = StringIO.new
+    streams.each { |stream| eval "$#{stream} = result" }
+    yield
+  ensure
+    streams.each { |stream| eval("$#{stream} = #{stream.upcase}") }
+  end
+  result.string
+end
+
