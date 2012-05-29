@@ -48,7 +48,7 @@ Gem::Specification.new do |s|
     ##RUBY_VERSION.match /1.9.3/ and (raise "no ruby-debug in ruby 1.9.3")
     #s.add_development_dependency 'ruby-debug19'
     #s.add_development_dependency 'ruby-debug-base19'
-    s.add_development_dependency 'debugger'
+    #s.add_development_dependency 'debugger'
   end
 
   # version class is read from
