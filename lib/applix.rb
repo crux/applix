@@ -44,7 +44,6 @@ usage: #{$0} <args...>"
     # pre handle, can modify args & options
     @prolog_cb.call(args, run_options) unless @prolog_cb.nil?
 
-
     # logic table for dispatching the command line onto an action
     #
     # id | name  exits? any | action
@@ -62,8 +61,8 @@ usage: #{$0} <args...>"
     task = tasks[name] || tasks[:any]
     task or (raise "no such task: '#{name}'")
 
-    # case #4: we must un-shift the name back into the args list to lets any
-    # see it as its first argument,
+    # case #4: we must un-shift the name back into the args list to let :any
+    # still sees it as first argument,
     (args.unshift name.to_s) if(name != :any && task[:name] == :any)
 
     # cluster for nesting or direct calling?
