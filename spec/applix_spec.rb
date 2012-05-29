@@ -31,62 +31,64 @@ describe Applix do
     end
   end
 
-  it 'cluster defaults shadow globals' do
-    args = %w(-c=5 cluster cmd)
-    Applix.main(args, a: :global, b: 2, :cluster => {a: :cluster, c: 3}) do
-      handle(:cmd) { raise 'should not be called!' }
-      cluster(:cluster) do
-        handle(:cmd) do |*args, options|
-          options.should == {:a => :cluster, :b => 2, :c => '5'}
-          args
-        end
-      end
-    end
-  end
-
-  it 'calls cluster prolog' do
-    Applix.main(%w(foo a b)) do
-      cluster(:foo) do
-        prolog { |args, options|
-          args.should == %w(a b)
-          args.reverse!
-        }
-        handle(:a) { raise 'should not be called!' }
-        handle(:b) { :b_was_called }
-      end
-    end.should == :b_was_called
-  end
-
-  it 'support :cluster for nesting' do
-    args = %w(-a -b:2 foo bar p1 p2)
-    Applix.main(args) do
-      handle(:foo) do
-        raise 'should not be called!'
-      end
-      cluster(:foo) do
-        handle(:bar) do |*args, options|
-          args.should == %w(p1 p2)
-          options.should == {:a => true, :b => 2}
-          args
-        end
-      end
-    end.should == %w{p1 p2}
-  end
-
-  it 'can even cluster clusters' do
-    args = %w(foo bar f p1 p2)
-    Applix.main(args) do
-      cluster(:foo) do
-        cluster(:bar) do
-          handle(:f) do |*args, options|
-            args.should == %w(p1 p2)
-            options.should == {}
+  describe 'cluster' do
+    it 'cluster defaults shadow globals' do
+      args = %w(-c=5 cluster cmd)
+      Applix.main(args, a: :global, b: 2, :cluster => {a: :cluster, c: 3}) do
+        handle(:cmd) { raise 'should not be called!' }
+        cluster(:cluster) do
+          handle(:cmd) do |*args, options|
+            options.should == {:a => :cluster, :b => 2, :c => '5'}
             args
           end
         end
       end
-    end.should == %w{p1 p2}
-  end
+    end
+
+    it 'calls cluster prolog' do
+      Applix.main(%w(foo a b)) do
+        cluster(:foo) do
+          prolog { |args, options|
+            args.should == %w(a b)
+            args.reverse!
+          }
+          handle(:a) { raise 'should not be called!' }
+          handle(:b) { :b_was_called }
+        end
+      end.should == :b_was_called
+    end
+
+    it 'support :cluster for nesting' do
+      args = %w(-a -b:2 foo bar p1 p2)
+      Applix.main(args) do
+        handle(:foo) do
+          raise 'should not be called!'
+        end
+        cluster(:foo) do
+          handle(:bar) do |*args, options|
+            args.should == %w(p1 p2)
+            options.should == {:a => true, :b => 2}
+            args
+          end
+        end
+      end.should == %w{p1 p2}
+    end
+
+    it 'can even cluster clusters' do
+      args = %w(foo bar f p1 p2)
+      Applix.main(args) do
+        cluster(:foo) do
+          cluster(:bar) do
+            handle(:f) do |*args, options|
+              args.should == %w(p1 p2)
+              options.should == {}
+              args
+            end
+          end
+        end
+      end.should == %w{p1 p2}
+    end
+  end #.cluster
 
   it 'prolog can even temper with arguments to modify the handle sequence' do
     Applix.main(['a', 'b']) do
@@ -219,16 +221,11 @@ describe Applix do
     end.should include(:a => true, :bar => true)
   end
 
+  it 'parses dashes in string options' do
+  end
+  
   it "should parse the old unit test..." do
-    #   -f                becomes { :f      => true }
-    #   --flag            becomes { :flag   => true }
-    (ApplixHash.parse '-f').should == [:f, true]
-    (ApplixHash.parse '--flag').should == [:flag, true]
-    #   --flag:false      becomes { :flag   => false }
-    (ApplixHash.parse '--flag:false').should == [:flag, false]
-
-    #   --option=value    becomes { :option => "value" }
-    (ApplixHash.parse '--opt=val').should == [:opt, 'val']
+    # see applix_hash_spec.rb
 
     #   --int=1           becomes { :int    => "1" }
     #   --int:1           becomes { :int    => 1 }

@@ -39,7 +39,7 @@ module ApplixHash
   # parse single flag/option into a [key, value] tuple. returns nil on non
   # option/flag arguments.
   def self.parse(arg)
-    m = /^(-(\w)|--(\w\w+))(([=:])(.+))?$/.match(arg)
+    m = /^(-(\w)|--(\w[\w-]+))(([=:])(.+))?$/.match(arg)
     return [nil, arg] unless m # neither option nor flag -> straight arg
     key = (m[2] || m[3]).to_sym
     value = m[6][/(['"]?)(.*)\1$/,2] rescue true
