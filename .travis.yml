@@ -1,5 +1,5 @@
 language: ruby
-bundler_args: --without development
+bundler_args: --without debug
 rvm:
   - 1.9.2
   - 1.9.3 # switched to debugger gem 
