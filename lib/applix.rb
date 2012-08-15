@@ -12,8 +12,9 @@ class Applix
 
   rescue => e
     puts <<-TXT
+## #{e}
 
-usage: #{$0} <args...>"
+usage: #{$0} <args...>
 
     TXT
   end
