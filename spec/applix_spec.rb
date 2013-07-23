@@ -194,6 +194,18 @@ describe Applix do
     end
   end
 
+  it 'loops over args with argsloop app option to any' do
+    # stubbed app simulates consuming the args while looping over app calls
+    app = double(:app)
+    app.should_receive(:a).with(%w(1 b 2 3 c 4 5 6), {}).and_return(%w(b 2 3))
+    app.should_receive(:b).with(%w(2 3), {}).and_return(%w(c 4 5 6))
+    app.should_receive(:c).with(%w(4 5 6), {}).and_return([])
+    Applix.main(%w(a 1 b 2 3 c 4 5 6)) do
+      handle(:not_called) { raise "can't possible happen" }
+      any(argsloop: app)
+    end
+  end
+
   it 'should call actions by first argument names' do
     argv = ['func']
     Applix.main(argv) do
@@ -221,7 +233,7 @@ describe Applix do
     end.should include(:a => true, :bar => true)
   end
 
-  it 'parses dashes in string options' do
+  pending 'parses dashes in string options' do
   end
   
   it "should parse the old unit test..." do

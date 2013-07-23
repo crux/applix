@@ -105,7 +105,22 @@ usage: #{$0} <args...>
     @epilog_cb = blk
   end
 
-  def any &blk
+  def any(opts = {}, &blk)
+    if(app = opts[:argsloop]) 
+      blk = lambda do |*args, opts|
+        while(args && 0 < args.size) do
+          args = begin
+                   if(op = args.shift)
+                     puts " --(#{op})-- (#{args.join ', '})"
+                     app.send(op, args, opts)
+                   end
+                 rescue ArgumentError => e
+                   app.send(op, opts)
+                 end
+        end
+      end
+    end
+
     tasks[:any] = { :name => :any, :code => blk }
   end
 
