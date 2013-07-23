@@ -36,19 +36,16 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'daemons'
 
+  s.add_development_dependency 'bundler', '~> 1.3'
+  s.add_development_dependency 'rake'
   s.add_development_dependency 'rspec'
   s.add_development_dependency 'rspec-mocks'
-  s.add_development_dependency 'guard'
   s.add_development_dependency 'guard-rspec'
-  s.add_development_dependency 'growl'
 
   if RUBY_PLATFORM.match /java/i
     s.add_development_dependency 'ruby-debug'
   else
-    ##RUBY_VERSION.match /1.9.3/ and (raise "no ruby-debug in ruby 1.9.3")
-    #s.add_development_dependency 'ruby-debug19'
-    #s.add_development_dependency 'ruby-debug-base19'
-    #s.add_development_dependency 'debugger'
+    s.add_development_dependency 'debugger'
   end
 
   # version class is read from
