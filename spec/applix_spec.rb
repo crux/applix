@@ -4,8 +4,7 @@ describe Applix do
 
   context 'main' do
     it 'catches unknown task errors' do 
-      expect { Applix.main(%w(no-such-task)) {} }.
-        should_not raise_error /no-such-task/
+      expect { Applix.main(%w(no-such-task)) {} }.not_to raise_error
     end
 
     context 'with captured I/O streams' do
@@ -16,7 +15,8 @@ describe Applix do
 
       it 'suppresses the callstack on errors' do 
         output = capture(:stdout) { Applix.main(%w(no-such-task)) {} }
-        output.should_not =~ /no such task:/
+        output.should     =~ / ## no such task:/
+        output.should_not =~ / !! no such task:/
       end
 
       it 'shows callstack on --debug option' do 
@@ -26,7 +26,7 @@ describe Applix do
 
       it 'dumps a stacktrace on main with a !' do 
         expect { Applix.main!(%w(no-such-task)) {} }.
-          should raise_error /no such task:/
+          to raise_error /no such task:/
       end
     end
   end
