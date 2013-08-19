@@ -90,28 +90,50 @@ describe Applix do
     end
   end #.cluster
 
-  it 'prolog can even temper with arguments to modify the handle sequence' do
-    Applix.main(['a', 'b']) do
-      prolog { |args, options|
-        args.should == ['a', 'b']
-        args.reverse!
-      }
-      handle(:a) { raise 'should not be called!' }
-      handle(:b) { :b_was_called }
-    end.should == :b_was_called
-  end
+  context 'prolog invokations' do
+    it 'prolog can even temper with arguments to modify the handle sequence' do
+      Applix.main(['a', 'b']) do
+        prolog { |args, options|
+          args.should == ['a', 'b']
+          args.reverse!
+        }
+        handle(:a) { raise 'should not be called!' }
+        handle(:b) { :b_was_called }
+      end.should == :b_was_called
+    end
 
-  it 'prolog has read/write access to args and options' do
-    Applix.main(['func']) do
-      prolog { |args, options|
-        args.should == ['func']
-        options[:prolog] = Time.now
-      }
+    it 'prolog has read/write access to args and options' do
+      Applix.main(['func']) do
+        prolog { |args, options|
+          args.should == ['func']
+          options[:prolog] = Time.now
+        }
 
-      handle(:func) { |*_, options|
-        options[:prolog]
-      }
-    end.should_not == nil
+        handle(:func) { |*_, options|
+          options[:prolog]
+        }
+      end.should_not == nil
+    end
+
+    it 'runs before callback before handle calls' do
+      Applix.main(['func']) do
+
+        # @prolog will be available in handle invocations
+        prolog {
+          @prolog = :prolog
+        }
+
+        # @epilog will NOT make it into the handle invocation
+        epilog { |rc, *_|
+          @epilog = :epilog
+          rc
+        }
+
+        handle(:func) {
+          [@prolog, @epilog]
+        }
+      end.should == [:prolog, nil]
+    end
   end
 
   it 'epilog has access to task handler results' do
@@ -124,26 +146,6 @@ describe Applix do
       handle(:func) { [1, 2, 3] }
 
     end.should == [3, 2, 1]
-  end
-
-  it 'runs before callback before handle calls' do
-    Applix.main(['func']) do
-
-      # @prolog will be available in handle invocations
-      prolog {
-        @prolog = :prolog
-      }
-
-      # @epilog will NOT make it into the handle invocation
-      epilog { |rc, *_|
-        @epilog = :epilog
-        rc
-      }
-
-      handle(:func) {
-        [@prolog, @epilog]
-      }
-    end.should == [:prolog, nil]
   end
 
   it 'runs epilog callback after handle' do
