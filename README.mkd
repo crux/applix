@@ -52,6 +52,58 @@ becomes:
 
     { :foo => true, :bar => 'loo', :args => ["123", "now"] }
 
+## Command line micro DSLs with @argsloop@
+
+Imagine you have an app which could perform multiple operations on a excel
+sheet. Like reading, validating and reporting. You could put all variations in
+a single command which to call directly from a command line. A better is to
+break down such a procedure into single steps which can be performed
+independently and combined freely on the command line. Example procedure:
+
+  load <filename>
+  select <sheetname>
+  validate
+  print 
+
+Now you can make this an applix command line DSL like this:
+
+  Applix.main(ARGV) do
+    any(argsloop: MyExcelApp.new)
+  end
+
+and calling it like:
+
+  $ my_app load <filename> select <sheetname> validate print 
+
+Now to make applix call your app with the right commands and parameters the
+commands just have to take its parameters off the arg vector like this:
+
+  app.load(args)
+    filename = args.shift
+    ...
+    args
+  end
+
+  app.select(args)
+    sheetname = args.shift
+    ...
+    args
+  end
+
+  app.validate(args)
+    ...
+    args
+  end
+
+  app.print(args)
+    ...
+    args
+  end
+
+Adding new steps now is easy, like instead of print you could make an upload
+to another database for example without the need touch existing code.
+
+
 ## Note on Patches/Pull Requests
  
 * Fork the project.

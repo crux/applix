@@ -199,10 +199,10 @@ describe Applix do
   it 'loops over args with argsloop app option to any' do
     # stubbed app simulates consuming the args while looping over app calls
     app = double(:app)
-    app.should_receive(:a).with(%w(1 b 2 3 c 4 5 6), {}).and_return(%w(b 2 3))
-    app.should_receive(:b).with(%w(2 3), {}).and_return(%w(c 4 5 6))
-    app.should_receive(:c).with(%w(4 5 6), {}).and_return([])
-    Applix.main(%w(a 1 b 2 3 c 4 5 6)) do
+    app.should_receive(:op1).with(%w(p1 op2 2 3 op3 4 5 6), {}).and_return(%w(op2 2 3))
+    app.should_receive(:op2).with(%w(2 3), {}).and_return(%w(op3 4 5 6))
+    app.should_receive(:op3).with(%w(4 5 6), {}).and_return([])
+    Applix.main(%w(op1 p1 op2 2 3 op3 4 5 6)) do
       handle(:not_called) { raise "can't possible happen" }
       any(argsloop: app)
     end
