@@ -42,11 +42,11 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rspec-mocks'
   s.add_development_dependency 'guard-rspec'
 
-  if RUBY_PLATFORM.match /java/i
-    s.add_development_dependency 'ruby-debug'
-  else
-    s.add_development_dependency 'debugger'
-  end
+  #if RUBY_PLATFORM.match /java/i
+  #  s.add_development_dependency 'ruby-debug'
+  #else
+  #  s.add_development_dependency 'debugger'
+  #end
 
   # version class is read from
   s.files         = `git ls-files`.split("\n")
