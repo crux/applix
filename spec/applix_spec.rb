@@ -112,7 +112,7 @@ describe Applix do
         handle(:func) { |*_, options|
           options[:prolog]
         }
-      end.should_not == nil
+      end.should_not be_nil
     end
 
     it 'runs before callback before handle calls' do
@@ -236,6 +236,7 @@ describe Applix do
   end
 
   pending 'parses dashes in string options' do
+    raise 'xxx'
   end
   
   it "should parse the old unit test..." do
