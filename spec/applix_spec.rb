@@ -10,18 +10,18 @@ describe Applix do
     context 'with captured I/O streams' do
       it 'prints a minimal (better than nothing?) usage line on errors' do 
         output = capture(:stdout) { Applix.main(%w(no-such-task)) {} }
-        output.should =~ /usage: /
+        expect(output).to match(/usage: /)
       end
 
       it 'suppresses the callstack on errors' do 
         output = capture(:stdout) { Applix.main(%w(no-such-task)) {} }
-        output.should     =~ / ## no such task:/
-        output.should_not =~ / !! no such task:/
+        expect(output).to match(/ ## no such task:/)
+        expect(output).not_to match(/ !! no such task:/)
       end
 
       it 'shows callstack on --debug option' do 
         output = capture(:stdout) { Applix.main(%w(--debug no-such-task)) {} }
-        output.should =~ / !! no such task:/
+        expect(output).to match(/ !! no such task:/)
       end
 
       it 'dumps a stacktrace on main with a !' do 
@@ -38,7 +38,7 @@ describe Applix do
         handle(:cmd) { raise 'should not be called!' }
         cluster(:cluster) do
           handle(:cmd) do |*args, options|
-            options.should == {:a => :cluster, :b => 2, :c => '5'}
+            expect(options).to eq({:a => :cluster, :b => 2, :c => '5'})
             args
           end
         end
@@ -46,7 +46,7 @@ describe Applix do
     end
 
     it 'calls cluster prolog' do
-      Applix.main(%w(foo a b)) do
+      expect(Applix.main(%w(foo a b)) do
         cluster(:foo) do
           prolog { |args, options|
             args.should == %w(a b)
@@ -55,12 +55,12 @@ describe Applix do
           handle(:a) { raise 'should not be called!' }
           handle(:b) { :b_was_called }
         end
-      end.should == :b_was_called
+      end).to be(:b_was_called)
     end
 
     it 'support :cluster for nesting' do
       args = %w(-a -b:2 foo bar p1 p2)
-      Applix.main(args) do
+      expect(Applix.main(args) do
         handle(:foo) do
           raise 'should not be called!'
         end
@@ -71,12 +71,12 @@ describe Applix do
             args
           end
         end
-      end.should == %w{p1 p2}
+      end).to eq(%w{p1 p2})
     end
 
     it 'can even cluster clusters' do
       args = %w(foo bar f p1 p2)
-      Applix.main(args) do
+      expect(Applix.main(args) do
         cluster(:foo) do
           cluster(:bar) do
             handle(:f) do |*args, options|
@@ -86,20 +86,20 @@ describe Applix do
             end
           end
         end
-      end.should == %w{p1 p2}
+      end).to eq(%w{p1 p2})
     end
   end #.cluster
 
   context 'prolog invokations' do
     it 'prolog can even temper with arguments to modify the handle sequence' do
-      Applix.main(['a', 'b']) do
+      expect(Applix.main(['a', 'b']) do
         prolog { |args, options|
           args.should == ['a', 'b']
           args.reverse!
         }
         handle(:a) { raise 'should not be called!' }
         handle(:b) { :b_was_called }
-      end.should == :b_was_called
+      end).to eq(:b_was_called)
     end
 
     it 'prolog has read/write access to args and options' do
@@ -116,7 +116,7 @@ describe Applix do
     end
 
     it 'runs before callback before handle calls' do
-      Applix.main(['func']) do
+      expect(Applix.main(['func']) do
 
         # @prolog will be available in handle invocations
         prolog {
@@ -132,12 +132,12 @@ describe Applix do
         handle(:func) {
           [@prolog, @epilog]
         }
-      end.should == [:prolog, nil]
+      end).to eq([:prolog, nil])
     end
   end
 
   it 'epilog has access to task handler results' do
-    Applix.main(['func']) do
+    expect(Applix.main(['func']) do
       # @epilog will NOT make it into the handle invocation
       epilog { |rc, *_|
         rc.should == [1, 2, 3]
@@ -145,7 +145,7 @@ describe Applix do
       }
       handle(:func) { [1, 2, 3] }
 
-    end.should == [3, 2, 1]
+    end).to eq([3, 2, 1])
   end
 
   it 'runs epilog callback after handle' do
@@ -162,15 +162,15 @@ describe Applix do
         last_action = :handle
       }
     end
-    last_action.should == :epilog
+    expect(last_action).to be(:epilog)
   end
 
   it 'supports :any as fallback on command lines without matching task' do
     Applix.main(%w(--opt1 foo param1 param2), {:opt2 => false}) do
       handle(:not_called) { raise "can't possible happen" }
       any do |*args, options|
-        args.should == ["foo", "param1", "param2"]
-        options.should == {:opt1 => true, :opt2 => false}
+        expect(args).to eq(["foo", "param1", "param2"])
+        expect(options).to eq({:opt1 => true, :opt2 => false})
       end
     end
   end
@@ -178,8 +178,8 @@ describe Applix do
   it 'any does not shadow existing tasks' do
     Applix.main(['--opt1', 'foo', "param1", "param2"], {:opt2 => false}) do
       handle(:foo) do |*args, options|
-        args.should == ["param1", "param2"]
-        options.should == {:opt1 => true, :opt2 => false}
+        expect(args).to eq(["param1", "param2"])
+        expect(options).to eq({:opt1 => true, :opt2 => false})
       end
       any { raise "can't possible happen" }
     end
@@ -189,8 +189,8 @@ describe Applix do
     %w(bla fasel laber red).each do |name|
       Applix.main(['--opt1', name, "param1", "param2"], {:opt2 => false}) do
         any do |*args, options|
-          args.should == [name, "param1", "param2"]
-          options.should == {:opt1 => true, :opt2 => false}
+          expect(args).to eq([name, "param1", "param2"])
+          expect(options).to eq({:opt1 => true, :opt2 => false})
         end
       end
     end
@@ -199,9 +199,12 @@ describe Applix do
   it 'loops over args with argsloop app option to any' do
     # stubbed app simulates consuming the args while looping over app calls
     app = double(:app)
-    app.should_receive(:op1).with(%w(p1 op2 2 3 op3 4 5 6), {}).and_return(%w(op2 2 3))
-    app.should_receive(:op2).with(%w(2 3), {}).and_return(%w(op3 4 5 6))
-    app.should_receive(:op3).with(%w(4 5 6), {}).and_return([])
+    #app.should_receive(:op1).with(%w(p1 op2 2 3 op3 4 5 6), {}).and_return(%w(op2 2 3))
+    expect(app).to receive(:op1).with(%w(p1 op2 2 3 op3 4 5 6), {}).and_return(%w(op2 2 3))
+    #app.should_receive(:op2).with(%w(2 3), {}).and_return(%w(op3 4 5 6))
+    expect(app).to receive(:op2).with(%w(2 3), {}).and_return(%w(op3 4 5 6))
+    #app.should_receive(:op3).with(%w(4 5 6), {}).and_return([])
+    expect(app).to receive(:op3).with(%w(4 5 6), {}).and_return([])
     Applix.main(%w(op1 p1 op2 2 3 op3 4 5 6)) do
       handle(:not_called) { raise "can't possible happen" }
       any(argsloop: app)
@@ -210,33 +213,33 @@ describe Applix do
 
   it 'should call actions by first argument names' do
     argv = ['func']
-    Applix.main(argv) do
+    expect(Applix.main(argv) do
       handle(:func) { :func_return }
-    end.should == :func_return
+    end).to be(:func_return)
   end
 
   it 'passes arguments to function' do
     argv = ['func', 'p1', 'p2']
     subject = Applix.main(argv) { handle(:func) {|*args, options| args} }
-    subject.should eq(%w(p1 p2))
+    expect(subject).to eq(%w(p1 p2))
   end
 
   it 'passes a default options hash to function' do
     argv = %w(func)
-    Applix.main(argv) do
+    expect(Applix.main(argv) do
       handle(:func) { |*_, options| options }
-    end.should eq({})
+    end).to eq({})
   end
 
   it 'should pass a processed options hash' do
     argv = %w(-a --bar func)
-    Applix.main(argv) do
+    expect(Applix.main(argv) do
       handle(:func) { |*_, options| options }
-    end.should include(:a => true, :bar => true)
+    end).to include(:a => true, :bar => true)
   end
 
   pending 'parses dashes in string options' do
-    raise 'xxx'
+    fail '?'
   end
   
   it "should parse the old unit test..." do
@@ -247,22 +250,22 @@ describe Applix do
     #   --float=2.3       becomes { :float  => "2.3" }
     #   --float:2.3       becomes { :float  => 2.3 }
     #   -f:1.234          becomes { :f      => 1.234 }
-    (Hash.from_argv ["--int=1"])[:int].should == "1"
-    (Hash.from_argv ["--int:1"])[:int].should == 1
-    (Hash.from_argv ["--float=2.3"])[:float].should == "2.3"
-    (Hash.from_argv ["--float:2.3"])[:float].should == 2.3
-    (Hash.from_argv ["-f:2.345"])[:f].should == 2.345
+    expect((Hash.from_argv ["--int=1"])[:int]).to eq("1")
+    expect((Hash.from_argv ["--int:1"])[:int]).to eq(1)
+    expect((Hash.from_argv ["--float=2.3"])[:float]).to eq("2.3")
+    expect((Hash.from_argv ["--float:2.3"])[:float]).to eq(2.3)
+    expect((Hash.from_argv ["-f:2.345"])[:f]).to eq(2.345)
 
     #   --txt="foo bar"   becomes { :txt    => "foo bar" }
     #   --txt:'"foo bar"' becomes { :txt    => "foo bar" }
     #   --txt:%w{foo bar} becomes { :txt    => ["foo", "bar"] }
-    (Hash.from_argv ['--txt="foo bar"'])[:txt].should == "foo bar"
-    (Hash.from_argv [%q|--txt:'"foo bar"'|])[:txt].should == "foo bar"
-    (Hash.from_argv [%q|--txt:'%w{foo bar}'|])[:txt].should == ["foo", "bar"]
+    expect((Hash.from_argv ['--txt="foo bar"'])[:txt]).to eq("foo bar")
+    expect((Hash.from_argv [%q|--txt:'"foo bar"'|])[:txt]).to eq("foo bar")
+    expect((Hash.from_argv [%q|--txt:'%w{foo bar}'|])[:txt]).to eq(["foo", "bar"])
 
     #   --now:Time.now    becomes { :now    => Mon Jul 09 01:30:21 0200 2007 }
     #dt = Time.now - H.parse("--now:Time.now")[1]
-    (t = (Hash.from_argv ["--now:Time.now"])[:now]).should_not == nil
+    expect((t = (Hash.from_argv ["--now:Time.now"])[:now])).to be
   end
 end
 
