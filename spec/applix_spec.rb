@@ -215,9 +215,9 @@ describe Applix do
     it 'instantiates a class instance' do
       obj = double(:obj)
       clazz = Class.new
-      expect(clazz).to receive(:new).and_return(obj)
-      expect(obj).to receive(:op).with([], {}).and_return([])
-      Applix.main(%w(op)) do
+      expect(clazz).to receive(:new).with({o: true}).and_return(obj)
+      expect(obj).to receive(:p).with('a1', 'a2').and_return([])
+      Applix.main(%w(-o p a1 a2)) do
         handle(:not_called) { raise "can't possible happen" }
         any(argsloop: clazz)
       end

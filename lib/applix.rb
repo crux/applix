@@ -105,23 +105,29 @@ usage: #{$0} <args...>
     @epilog_cb = blk
   end
 
-  # opts[:argsloop], the target for any, may be be class or an object. In case of
-  # class we instantiate an object from it, other we use the object itself
+  # opts[:argsloop], the target for any, may be be class or an object. In case
+  # of class we instantiate an object from it, other we use the object itself
   def any(opts = {}, &blk)
     if(app = opts[:argsloop]) 
-      # argsloop target could be class or object. In case of class we
-      # instantiate an object from it 
-      app = app.new(opts) if(app.is_a? Class)
 
       blk = lambda do |*args, opts|
+        # instantiate or assign target object before first usage
+        target = (app.is_a? Class) ? app.new(opts) : app
+
         while(args && 0 < args.size) do
           args = begin
                    if(op = args.shift)
                      puts " --(#{op})-- (#{args.join ', '})"
-                     app.send(op, args, opts)
+                     if(target == app)
+                       # object target
+                       target.send(op, args, opts)
+                     else
+                       # object instance created from class target 
+                       target.send(op, *args)
+                     end
                    end
                  rescue ArgumentError => e
-                   app.send(op, opts)
+                   target.send(op, opts)
                  end
         end
       end
