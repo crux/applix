@@ -4,28 +4,28 @@ describe Applix do
 
   context 'main' do
     it 'catches unknown task errors' do 
-      expect { Applix.main(%w(no-such-task)) {} }.not_to raise_error
+      expect { Applix.main(%w(0no-such-task)) {} }.not_to raise_error
     end
 
     context 'with captured I/O streams' do
       it 'prints a minimal (better than nothing?) usage line on errors' do 
-        output = capture(:stdout) { Applix.main(%w(no-such-task)) {} }
+        output = capture(:stdout) { Applix.main(%w(1no-such-task)) {} }
         expect(output).to match(/usage: /)
       end
 
       it 'suppresses the callstack on errors' do 
-        output = capture(:stdout) { Applix.main(%w(no-such-task)) {} }
+        output = capture(:stdout) { Applix.main(%w(expected-task-error-output)) {} }
         expect(output).to match(/ ## no such task:/)
         expect(output).not_to match(/ !! no such task:/)
       end
 
       it 'shows callstack on --debug option' do 
-        output = capture(:stdout) { Applix.main(%w(--debug no-such-task)) {} }
+        output = capture(:stdout) { Applix.main(%w(--debug 2no-such-task)) {} }
         expect(output).to match(/ !! no such task:/)
       end
 
       it 'dumps a stacktrace on main with a !' do 
-        expect { Applix.main!(%w(no-such-task)) {} }.
+        expect { Applix.main!(%w(3no-such-task)) {} }.
           to raise_error /no such task:/
       end
     end
@@ -38,7 +38,7 @@ describe Applix do
         handle(:cmd) { raise 'should not be called!' }
         cluster(:cluster) do
           handle(:cmd) do |*args, options|
-            expect(options).to eq({:a => :cluster, :b => 2, :c => '5'})
+            options.should == {:a => :cluster, :b => 2, :c => '5'}
             args
           end
         end
@@ -169,8 +169,8 @@ describe Applix do
     Applix.main(%w(--opt1 foo param1 param2), {:opt2 => false}) do
       handle(:not_called) { raise "can't possible happen" }
       any do |*args, options|
-        expect(args).to eq(["foo", "param1", "param2"])
-        expect(options).to eq({:opt1 => true, :opt2 => false})
+        args.should == ["foo", "param1", "param2"]
+        options.should == {:opt1 => true, :opt2 => false}
       end
     end
   end
@@ -178,8 +178,8 @@ describe Applix do
   it 'any does not shadow existing tasks' do
     Applix.main(['--opt1', 'foo', "param1", "param2"], {:opt2 => false}) do
       handle(:foo) do |*args, options|
-        expect(args).to eq(["param1", "param2"])
-        expect(options).to eq({:opt1 => true, :opt2 => false})
+        args.should == ["param1", "param2"]
+        options.should == {:opt1 => true, :opt2 => false}
       end
       any { raise "can't possible happen" }
     end
@@ -189,25 +189,38 @@ describe Applix do
     %w(bla fasel laber red).each do |name|
       Applix.main(['--opt1', name, "param1", "param2"], {:opt2 => false}) do
         any do |*args, options|
-          expect(args).to eq([name, "param1", "param2"])
-          expect(options).to eq({:opt1 => true, :opt2 => false})
+          args.should == [name, "param1", "param2"]
+          options.should == {:opt1 => true, :opt2 => false}
         end
       end
     end
   end
 
-  it 'loops over args with argsloop app option to any' do
-    # stubbed app simulates consuming the args while looping over app calls
-    app = double(:app)
-    #app.should_receive(:op1).with(%w(p1 op2 2 3 op3 4 5 6), {}).and_return(%w(op2 2 3))
-    expect(app).to receive(:op1).with(%w(p1 op2 2 3 op3 4 5 6), {}).and_return(%w(op2 2 3))
-    #app.should_receive(:op2).with(%w(2 3), {}).and_return(%w(op3 4 5 6))
-    expect(app).to receive(:op2).with(%w(2 3), {}).and_return(%w(op3 4 5 6))
-    #app.should_receive(:op3).with(%w(4 5 6), {}).and_return([])
-    expect(app).to receive(:op3).with(%w(4 5 6), {}).and_return([])
-    Applix.main(%w(op1 p1 op2 2 3 op3 4 5 6)) do
-      handle(:not_called) { raise "can't possible happen" }
-      any(argsloop: app)
+  describe 'any with argsloop' do
+    it 'loops over args' do
+      # stubbed app simulates consuming the args while looping over app calls
+      app = double(:app)
+      #app.should_receive(:op1).with(%w(p1 op2 2 3 op3 4 5 6), {}).and_return(%w(op2 2 3))
+      expect(app).to receive(:op1).with(%w(p1 op2 2 3 op3 4 5 6), {}).and_return(%w(op2 2 3))
+      #app.should_receive(:op2).with(%w(2 3), {}).and_return(%w(op3 4 5 6))
+      expect(app).to receive(:op2).with(%w(2 3), {}).and_return(%w(op3 4 5 6))
+      #app.should_receive(:op3).with(%w(4 5 6), {}).and_return([])
+      expect(app).to receive(:op3).with(%w(4 5 6), {}).and_return([])
+      Applix.main(%w(op1 p1 op2 2 3 op3 4 5 6)) do
+        handle(:not_called) { raise "can't possible happen" }
+        any(argsloop: app)
+      end
+    end
+
+    it 'instantiates a class instance' do
+      obj = double(:obj)
+      clazz = Class.new
+      expect(clazz).to receive(:new).and_return(obj)
+      expect(obj).to receive(:op).with([], {}).and_return([])
+      Applix.main(%w(op)) do
+        handle(:not_called) { raise "can't possible happen" }
+        any(argsloop: clazz)
+      end
     end
   end
 

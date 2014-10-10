@@ -105,8 +105,14 @@ usage: #{$0} <args...>
     @epilog_cb = blk
   end
 
+  # opts[:argsloop], the target for any, may be be class or an object. In case of
+  # class we instantiate an object from it, other we use the object itself
   def any(opts = {}, &blk)
     if(app = opts[:argsloop]) 
+      # argsloop target could be class or object. In case of class we
+      # instantiate an object from it 
+      app = app.new(opts) if(app.is_a? Class)
+
       blk = lambda do |*args, opts|
         while(args && 0 < args.size) do
           args = begin
