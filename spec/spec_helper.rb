@@ -4,7 +4,7 @@ $:.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 #require 'rspec/mocks'
 require 'applix'
 require 'applix/oattr'
-require 'byebug'
+begin; require 'byebug'; rescue LoadError; puts 'no byebug on java ;-)'; end
 
 RSpec.configure do |config|
   config.before :each do
