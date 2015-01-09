@@ -1,7 +1,6 @@
 language: ruby
 bundler_args: --without debug
 rvm:
-  - 1.9.2
   - 1.9.3 # switched to debugger gem 
   - 2.2.0 
   - jruby-19mode # JRuby in 1.9 mode
