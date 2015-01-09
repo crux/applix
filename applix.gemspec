@@ -42,7 +42,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rspec-mocks'
   s.add_development_dependency 'guard-rspec'
 
-  unless RUBY_PLATFORM.match /java/i
+  if !(RUBY_PLATFORM.match /java/i) && (RUBY_VERSION.match /^2/)
     s.add_development_dependency 'byebug'
   end
 
