@@ -117,7 +117,8 @@ usage: #{$0} <args...>
         while(args && 0 < args.size) do
           args = begin
                    if(op = args.shift)
-                     puts " --(#{op})-- (#{args.join ', '})"
+                     op.gsub!(/(\w)-(\w)/, '\1_\2')
+                     #puts " --(#{op})-- (#{args.join ', '})"
                      if(target == app)
                        # object target
                        target.send(op, args, opts)
